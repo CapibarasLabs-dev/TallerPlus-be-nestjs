@@ -5,6 +5,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { UsersModule } from './modules/users/users.modules';
 import { CompaniesModule } from './modules/companies/companies.modules';
+import { UserCompaniesModule } from './modules/companies/user-company.modules';
 
 @Module({
   imports: [
@@ -29,6 +30,7 @@ import { CompaniesModule } from './modules/companies/companies.modules';
     }),
     UsersModule,
     CompaniesModule,
+    UserCompaniesModule,
   ],
 
   controllers: [AppController],
