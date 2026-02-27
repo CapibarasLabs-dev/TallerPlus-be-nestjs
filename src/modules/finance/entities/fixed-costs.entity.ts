@@ -19,8 +19,8 @@ export class FixedCost extends BaseEntity {
   @Column({ type: 'float', nullable: true })
   internet: number;
 
-  @Column({ type: 'jsonb', nullable: true })
-  others: any;
+  @Column({ type: 'jsonb', nullable: true, default: [] })
+  others: { titule: string; cost: number }[];
 
   @OneToOne(() => Company)
   @JoinColumn({ name: 'tenant_id' })
