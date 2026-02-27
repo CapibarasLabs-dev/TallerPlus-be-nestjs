@@ -7,9 +7,12 @@ import {
   Param,
   Delete,
   ParseUUIDPipe,
+  UseGuards,
+  Request,
 } from '@nestjs/common';
 import { UserCompany } from './entities/user-companies.entity';
 import { UserCompaniesService } from './user-company.service';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
 @Controller('user-companies')
 export class UserCompaniesController {
@@ -46,5 +49,12 @@ export class UserCompaniesController {
   @Delete(':id')
   remove(@Param('id', ParseUUIDPipe) id: string) {
     return this.userCompaniesService.remove(id);
+  }
+
+  @Get('my-organizations')
+  @UseGuards(JwtAuthGuard) // Assuming you have a standard JWT Guard
+  async getMyOrganizations(@Request() req) {
+    // req.user.sub is the ID from the JWT payload
+    return this.userCompaniesService.getMyCompanies(req.user.sub);
   }
 }
