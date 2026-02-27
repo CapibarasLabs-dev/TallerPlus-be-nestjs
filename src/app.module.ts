@@ -8,6 +8,7 @@ import { CompaniesModule } from './modules/companies/companies.modules';
 import { UserCompaniesModule } from './modules/companies/user-company.modules';
 import { AuthModule } from './modules/auth/auth.module';
 import { FixedCostModule } from './modules/finance/fixed-costs.module';
+import { MaterialsModule } from './modules/inventory/materials.module';
 
 @Module({
   imports: [
@@ -35,6 +36,7 @@ import { FixedCostModule } from './modules/finance/fixed-costs.module';
     UserCompaniesModule,
     AuthModule,
     FixedCostModule,
+    MaterialsModule,
   ],
 
   controllers: [AppController],
