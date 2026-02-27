@@ -31,7 +31,6 @@ export class MaterialsService {
     return material;
   }
 
-  // Update material (prices change often in UY!)
   async update(
     tenantId: string,
     id: string,
@@ -42,7 +41,6 @@ export class MaterialsService {
     return await this.repo.save(material);
   }
 
-  // Delete material
   async remove(tenantId: string, id: string) {
     const material = await this.findOne(tenantId, id);
     return await this.repo.remove(material);

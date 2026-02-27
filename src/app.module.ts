@@ -9,6 +9,7 @@ import { UserCompaniesModule } from './modules/companies/user-company.modules';
 import { AuthModule } from './modules/auth/auth.module';
 import { FixedCostModule } from './modules/finance/fixed-costs.module';
 import { MaterialsModule } from './modules/inventory/materials.module';
+import { SuppliersModule } from './modules/suppliers/suppliers.controller';
 
 @Module({
   imports: [
@@ -37,6 +38,7 @@ import { MaterialsModule } from './modules/inventory/materials.module';
     AuthModule,
     FixedCostModule,
     MaterialsModule,
+    SuppliersModule,
   ],
 
   controllers: [AppController],
