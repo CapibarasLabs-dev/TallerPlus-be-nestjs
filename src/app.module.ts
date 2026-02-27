@@ -7,6 +7,7 @@ import { UsersModule } from './modules/users/users.modules';
 import { CompaniesModule } from './modules/companies/companies.modules';
 import { UserCompaniesModule } from './modules/companies/user-company.modules';
 import { AuthModule } from './modules/auth/auth.module';
+import { FixedCostModule } from './modules/finance/fixed-costs.module';
 
 @Module({
   imports: [
@@ -33,6 +34,7 @@ import { AuthModule } from './modules/auth/auth.module';
     CompaniesModule,
     UserCompaniesModule,
     AuthModule,
+    FixedCostModule,
   ],
 
   controllers: [AppController],
