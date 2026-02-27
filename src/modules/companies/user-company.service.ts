@@ -59,6 +59,18 @@ export class UserCompaniesService {
     return association;
   }
 
+  // Find a specific association by user and company
+  async findSpecific(
+    user_id: string,
+    company_id: string,
+  ): Promise<UserCompany> {
+    const association = await this.userCompanyRepository.findOne({
+      where: { user_id, company_id },
+    });
+    if (!association) throw new NotFoundException('Association not found');
+    return association;
+  }
+
   // Update role (e.g., change GUEST to OWNER)
   async updateRole(id: string, role: string): Promise<UserCompany> {
     const association = await this.findOne(id);
@@ -70,5 +82,21 @@ export class UserCompaniesService {
   async remove(id: string): Promise<void> {
     const association = await this.findOne(id);
     await this.userCompanyRepository.remove(association);
+  }
+
+  async getMyCompanies(userId: string) {
+    return await this.userCompanyRepository.find({
+      where: { user_id: userId },
+      relations: ['company'],
+      select: {
+        id: true,
+        role: true,
+        company_id: true,
+        company: {
+          name: true,
+          logo: true,
+        },
+      },
+    });
   }
 }
