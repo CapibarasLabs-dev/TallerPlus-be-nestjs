@@ -1,4 +1,4 @@
-import { BaseEntity } from 'src/common/base.entity';
+import { BaseEntity } from '../../../common/base.entity';
 import { Column, Entity, ManyToOne } from 'typeorm';
 import { Material } from './materials.entity';
 import { Product } from './products.entity';

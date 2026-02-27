@@ -1,24 +1,24 @@
-import { BaseEntity } from 'src/common/base.entity';
-import { User } from 'src/modules/users/entities/user.entity';
+import { BaseEntity } from '../../../common/base.entity';
 import { Column, Entity, JoinColumn, ManyToOne } from 'typeorm';
 import { Company } from './company.entity';
+import { User } from '../../users/entities/user.entity';
 
 @Entity('user_companies')
 export class UserCompany extends BaseEntity {
   @Column()
-  userId: string;
+  user_id: string;
 
   @Column()
-  companyId: string;
+  company_id: string;
 
-  @Column({ default: 'GUEST' }) // OWNER, ADMIN, GUEST
+  @Column({ default: 'GUEST' }) // OWNER, GUEST
   role: string;
 
   @ManyToOne(() => User)
-  @JoinColumn({ name: 'userId' })
+  @JoinColumn({ name: 'user_id' })
   user: User;
 
   @ManyToOne(() => Company)
-  @JoinColumn({ name: 'companyId' })
+  @JoinColumn({ name: 'company_id' })
   company: Company;
 }

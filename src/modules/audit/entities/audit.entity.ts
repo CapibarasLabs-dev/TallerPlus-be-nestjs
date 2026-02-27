@@ -1,10 +1,12 @@
-import { BaseEntity } from 'src/common/base.entity';
-import { Column, Entity } from 'typeorm';
+import { Column, Entity, JoinColumn, ManyToOne } from 'typeorm';
+import { BaseEntity } from '../../../common/base.entity';
+import { User } from '../../users/entities/user.entity';
+import { Company } from '../../companies/entities/company.entity';
 
 @Entity('audit_logs')
 export class Audit extends BaseEntity {
   @Column()
-  tenantId: string;
+  tenant_id: string;
 
   @Column()
   code: string; // Ej: 'PAYMENT_REMINDER'
@@ -13,5 +15,13 @@ export class Audit extends BaseEntity {
   event: string; // Suceso
 
   @Column({ nullable: true })
-  clientId: string; // Cliente involucrado [cite: 211]
+  user_id: string;
+
+  @ManyToOne(() => User)
+  @JoinColumn({ name: 'user_id' })
+  user: User;
+
+  @ManyToOne(() => Company)
+  @JoinColumn({ name: 'tenant_id' })
+  company: Company;
 }
