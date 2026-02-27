@@ -23,7 +23,7 @@ export class Material extends BaseEntity {
   @Column({ type: 'jsonb', nullable: true })
   metadata: any;
 
-  @ManyToOne(() => Supplier, (supp) => supp.id)
+  @ManyToOne(() => Supplier, (sup) => sup.id)
   @JoinColumn({ name: 'supplier_id' })
   parent: Supplier;
 

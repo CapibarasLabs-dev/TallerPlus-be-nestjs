@@ -1,28 +1,33 @@
 import { BaseEntity } from '../../../common/base.entity';
-import { Column, Entity, JoinColumn, ManyToOne } from 'typeorm';
-import { User } from '../../users/entities/user.entity';
+import { Column, Entity, JoinColumn, ManyToOne, OneToMany } from 'typeorm';
 import { Company } from '../../companies/entities/company.entity';
+import { Material } from '../../inventory/entities/materials.entity';
 
 @Entity('suppliers')
 export class Supplier extends BaseEntity {
   @Column()
   tenant_id: string;
 
-  @Column({ nullable: true })
-  created_by: string;
-
   @Column()
   name: string;
+
+  @Column({ nullable: true })
+  contact_name: string;
 
   @Column({ nullable: true })
   phone: string;
 
   @Column({ nullable: true })
+  email: string;
+
+  @Column({ nullable: true })
   location: string;
 
-  @ManyToOne(() => User)
-  @JoinColumn({ name: 'created_by' })
-  user: User;
+  @Column({ type: 'jsonb', nullable: true, default: [] })
+  metadata: { key: string; value: string }[];
+
+  @OneToMany(() => Material, (mat) => mat.parent)
+  materials: Material[];
 
   @ManyToOne(() => Company)
   @JoinColumn({ name: 'tenant_id' })
