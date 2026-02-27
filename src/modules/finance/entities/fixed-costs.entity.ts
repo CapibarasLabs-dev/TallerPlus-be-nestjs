@@ -1,5 +1,5 @@
 import { BaseEntity } from '../../../common/base.entity';
-import { Column, Entity, JoinColumn, ManyToOne } from 'typeorm';
+import { Column, Entity, JoinColumn, ManyToOne, OneToOne } from 'typeorm';
 import { Company } from '../../companies/entities/company.entity';
 
 @Entity('fixed_costs')
@@ -16,13 +16,13 @@ export class FixedCost extends BaseEntity {
   @Column({ type: 'float', nullable: true })
   gas: number;
 
-  @Column({ type: 'float' })
+  @Column({ type: 'float', nullable: true })
   internet: number;
 
   @Column({ type: 'jsonb', nullable: true })
   others: any;
 
-  @ManyToOne(() => Company)
+  @OneToOne(() => Company)
   @JoinColumn({ name: 'tenant_id' })
   company: Company;
 }
