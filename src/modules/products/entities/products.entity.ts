@@ -20,14 +20,19 @@ export class Product extends BaseEntity {
   categories: string[];
 
   @Column('jsonb', { default: [] })
-  materials: { materialId: string; quantity: number }[]; //
+  materials: any;
 
   @Column('text', { array: true, default: [] })
   photos: string[];
 
-  //Variants
   @Column({ nullable: true })
   parent_id: string;
+
+  @Column({ default: 10 })
+  profit_margin: number;
+
+  @Column({ default: 0 })
+  labor_hours: number;
 
   @ManyToOne(() => Product, (product) => product.variants)
   @JoinColumn({ name: 'parent_id' })

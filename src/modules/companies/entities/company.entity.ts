@@ -18,6 +18,12 @@ export class Company extends BaseEntity {
   @Column({ nullable: true })
   rut: string;
 
+  @Column({ default: 'UYU' })
+  currency: string;
+
+  @Column({ default: 0 })
+  monthly_working_hours: number;
+
   @Column({ type: 'jsonb', nullable: true })
   metadata: any;
 }

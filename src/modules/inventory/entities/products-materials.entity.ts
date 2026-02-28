@@ -1,22 +1,24 @@
+import { Entity, Column, ManyToOne, JoinColumn } from 'typeorm';
 import { BaseEntity } from '../../../common/base.entity';
-import { Column, Entity, ManyToOne } from 'typeorm';
+import { Product } from '../../products/entities/products.entity';
 import { Material } from './materials.entity';
-import { Product } from './products.entity';
 
 @Entity('product_materials')
 export class ProductMaterial extends BaseEntity {
   @Column()
-  productId: string;
+  product_id: string;
 
   @Column()
-  materialId: string;
+  material_id: string;
 
   @Column({ type: 'float' })
-  quantityUsed: number;
+  quantity_used: number; // Ej: 0.5 si usa medio kilo
 
-  @ManyToOne(() => Product)
+  @ManyToOne(() => Product, (p) => p.materials, { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'product_id' })
   product: Product;
 
-  @ManyToOne(() => Material)
+  @ManyToOne(() => Material, (m) => m.productMaterials)
+  @JoinColumn({ name: 'material_id' })
   material: Material;
 }
