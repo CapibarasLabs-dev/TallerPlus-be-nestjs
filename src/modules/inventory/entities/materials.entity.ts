@@ -1,7 +1,8 @@
 import { BaseEntity } from '../../../common/base.entity';
-import { Column, Entity, JoinColumn, ManyToOne } from 'typeorm';
+import { Column, Entity, JoinColumn, ManyToOne, OneToMany } from 'typeorm';
 import { Supplier } from '../../suppliers/entities/supplier.entity';
 import { Company } from '../../companies/entities/company.entity';
+import { ProductMaterial } from './products-materials.entity';
 
 @Entity('materials')
 export class Material extends BaseEntity {
@@ -23,11 +24,14 @@ export class Material extends BaseEntity {
   @Column({ type: 'jsonb', nullable: true })
   metadata: any;
 
-  @ManyToOne(() => Supplier, (sup) => sup.id)
+  @ManyToOne(() => Supplier, (supp) => supp.id)
   @JoinColumn({ name: 'supplier_id' })
   parent: Supplier;
 
   @ManyToOne(() => Company)
   @JoinColumn({ name: 'tenant_id' })
   company: Company;
+
+  @OneToMany(() => ProductMaterial, (pm) => pm.material)
+  productMaterials: ProductMaterial[];
 }
