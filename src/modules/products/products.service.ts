@@ -1,4 +1,8 @@
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import {
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DataSource } from 'typeorm';
 
@@ -59,6 +63,16 @@ export class ProductsService {
     return await this.productRepo.find({ where: { tenant_id } });
   }
 
+  // Find one by ID ensuring it belongs to the tenant
+  async findOne(tenantId: string, id: string): Promise<Product> {
+    const material = await this.productRepo.findOne({
+      where: { id, tenant_id: tenantId },
+    });
+    if (!material)
+      throw new NotFoundException('Product not found for this company');
+    return material;
+  }
+
   async calculatePrice(tenantId: string, productId: string) {
     const product = await this.productRepo.findOne({
       where: { id: productId, tenant_id: tenantId },
@@ -93,5 +107,20 @@ export class ProductsService {
         suggestedPrice: Math.round(suggestedPrice),
       },
     };
+  }
+
+  async update(
+    tenantId: string,
+    id: string,
+    data: Partial<Product>,
+  ): Promise<Product> {
+    const material = await this.findOne(tenantId, id);
+    Object.assign(material, data);
+    return await this.productRepo.save(material);
+  }
+
+  async remove(tenantId: string, id: string) {
+    const material = await this.findOne(tenantId, id);
+    return await this.productRepo.remove(material);
   }
 }

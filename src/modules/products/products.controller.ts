@@ -7,6 +7,8 @@ import {
   UseGuards,
   Request,
   NotFoundException,
+  Patch,
+  Delete,
 } from '@nestjs/common';
 import { ProductsService } from './products.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -24,8 +26,12 @@ export class ProductsController {
 
   @Get()
   async findAll(@Request() req: any) {
-    // Es bueno tener un listado básico
     return await this.productsService.findAll(req.tenantId);
+  }
+
+  @Get(':id')
+  findOne(@Request() req: any, @Param('id') id: string) {
+    return this.productsService.findOne(req.tenantId, id);
   }
 
   @Get(':id/calculate')
@@ -33,5 +39,15 @@ export class ProductsController {
     const result = await this.productsService.calculatePrice(req.tenantId, id);
     if (!result) throw new NotFoundException('Product not found');
     return result;
+  }
+
+  @Patch(':id')
+  update(@Request() req: any, @Param('id') id: string, @Body() data: any) {
+    return this.productsService.update(req.tenantId, id, data);
+  }
+
+  @Delete(':id')
+  remove(@Request() req: any, @Param('id') id: string) {
+    return this.productsService.remove(req.tenantId, id);
   }
 }
