@@ -11,6 +11,9 @@ import { FixedCostModule } from './modules/finance/fixed-costs.module';
 import { MaterialsModule } from './modules/inventory/materials.module';
 import { SuppliersModule } from './modules/suppliers/suppliers.controller';
 import { ProductsModule } from './modules/products/products.module';
+import { PaymentsModule } from './modules/payments/payments.module';
+import { CustomersModule } from './modules/customers/customers.module';
+import { VehiclesModule } from './modules/vehicles/vehicles.module';
 
 @Module({
   imports: [
@@ -41,6 +44,9 @@ import { ProductsModule } from './modules/products/products.module';
     MaterialsModule,
     SuppliersModule,
     ProductsModule,
+    PaymentsModule,
+    CustomersModule,
+    VehiclesModule,
   ],
 
   controllers: [AppController],
