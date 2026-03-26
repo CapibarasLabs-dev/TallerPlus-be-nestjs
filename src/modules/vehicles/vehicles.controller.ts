@@ -8,8 +8,14 @@ import {
   Request,
   Patch,
   Delete,
+  UseInterceptors,
+  UploadedFiles,
 } from '@nestjs/common';
 import { VehiclesService } from './vehicles.service';
+import {
+  FileFieldsInterceptor,
+  FilesInterceptor,
+} from '@nestjs/platform-express';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { TenantGuard } from '../../common/tenant.guard';
 
@@ -19,8 +25,27 @@ export class VehiclesController {
   constructor(private readonly vehiclesService: VehiclesService) {}
 
   @Post()
-  create(@Request() req: any, @Body() data: any) {
-    return this.vehiclesService.create(req.tenantId, data);
+  @UseInterceptors(
+    FileFieldsInterceptor([
+      { name: 'photos', maxCount: 10 },
+      { name: 'documents', maxCount: 5 },
+    ]),
+  )
+  create(
+    @Request() req: any,
+    @Body() data: any,
+    @UploadedFiles()
+    files: {
+      photos?: Express.Multer.File[];
+      documents?: Express.Multer.File[];
+    },
+  ) {
+    return this.vehiclesService.create(
+      req.tenantId,
+      data,
+      files.photos || [],
+      files.documents || [],
+    );
   }
 
   @Get()
@@ -34,12 +59,13 @@ export class VehiclesController {
   }
 
   @Patch(':id/photos')
-  addPhotos(
+  @UseInterceptors(FilesInterceptor('files'))
+  async addPhotos(
     @Request() req: any,
     @Param('id') id: string,
-    @Body() body: { urls: string[] },
+    @UploadedFiles() files: Express.Multer.File[],
   ) {
-    return this.vehiclesService.addPhotos(req.tenantId, id, body.urls);
+    return await this.vehiclesService.addPhotos(req.tenantId, id, files);
   }
 
   @Delete(':id')
