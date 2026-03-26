@@ -7,8 +7,6 @@ export class AppService implements OnModuleInit {
   async onModuleInit() {
     console.log('--- Testing connection ---');
     try {
-      const time = await this.dataSource.query('SELECT NOW()');
-      console.log('Datetime in DB:', time[0].now);
       const tables = await this.dataSource.query(
         `SELECT table_name FROM information_schema.tables WHERE table_schema = 'public'`,
       );

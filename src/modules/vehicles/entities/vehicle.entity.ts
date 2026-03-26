@@ -36,6 +36,9 @@ export class Vehicle extends BaseEntity {
   @Column({ type: 'jsonb', default: [] })
   photos: string[];
 
+  @Column({ type: 'jsonb', default: [] })
+  documents: string[];
+
   @Column({ type: 'jsonb', nullable: true })
   metadata: any;
 
