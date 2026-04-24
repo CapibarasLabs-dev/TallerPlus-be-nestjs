@@ -94,6 +94,29 @@ export class VehiclesService {
     return await this.repo.save(vehicle);
   }
 
+  async findById(tenantId: string, id: string): Promise<Vehicle> {
+    const vehicle = await this.repo.findOne({
+      where: { id, tenant_id: tenantId },
+      relations: ['customer'],
+    });
+    if (!vehicle) throw new NotFoundException('Vehículo no encontrado');
+    return vehicle;
+  }
+
+  async update(tenantId: string, id: string, data: Partial<Vehicle>): Promise<Vehicle> {
+    const vehicle = await this.findById(tenantId, id);
+    // Normalize plate if provided
+    if (data.plate) {
+      data.plate = (data.plate as string).trim().toUpperCase();
+    }
+    // Prevent overwriting protected fields via this endpoint
+    delete (data as any).tenant_id;
+    delete (data as any).photos;
+    delete (data as any).documents;
+    Object.assign(vehicle, data);
+    return await this.repo.save(vehicle);
+  }
+
   async remove(tenantId: string, id: string) {
     const vehicle = await this.repo.findOne({
       where: { id, tenant_id: tenantId },

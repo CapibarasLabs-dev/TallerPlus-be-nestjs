@@ -53,11 +53,18 @@ export class VehiclesController {
     return this.vehiclesService.findAll(req.tenantId);
   }
 
+  // GET by UUID — must be declared before :plate to avoid routing ambiguity
+  @Get('id/:id')
+  findById(@Request() req: any, @Param('id') id: string) {
+    return this.vehiclesService.findById(req.tenantId, id);
+  }
+
   @Get(':plate')
   findOne(@Request() req: any, @Param('plate') plate: string) {
     return this.vehiclesService.findByPlate(req.tenantId, plate);
   }
 
+  // PATCH :id/photos must come BEFORE :id to avoid conflict
   @Patch(':id/photos')
   @UseInterceptors(FilesInterceptor('files'))
   async addPhotos(
@@ -66,6 +73,11 @@ export class VehiclesController {
     @UploadedFiles() files: Express.Multer.File[],
   ) {
     return await this.vehiclesService.addPhotos(req.tenantId, id, files);
+  }
+
+  @Patch(':id')
+  update(@Request() req: any, @Param('id') id: string, @Body() body: any) {
+    return this.vehiclesService.update(req.tenantId, id, body);
   }
 
   @Delete(':id')
