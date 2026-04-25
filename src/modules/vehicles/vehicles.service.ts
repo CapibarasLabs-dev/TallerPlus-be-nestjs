@@ -59,6 +59,7 @@ export class VehiclesService {
   async findByPlate(tenantId: string, plate: string) {
     const vehicle = await this.repo.findOne({
       where: { tenant_id: tenantId, plate: plate.toUpperCase() },
+      relations: ['customer'],
     });
     if (!vehicle) throw new NotFoundException('Vehicle not found');
     return vehicle;

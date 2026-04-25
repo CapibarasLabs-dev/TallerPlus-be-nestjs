@@ -72,17 +72,22 @@ export class WorkOrdersService {
     });
   }
 
-  /** Recalculate and persist subtotal + total on a WorkOrder */
-  private async recalculateTotals(order: WorkOrder): Promise<WorkOrder> {
+  /**
+   * Recalculate and persist subtotal + total on a WorkOrder.
+   * Uses Repository.update() instead of save() to avoid TypeORM cascade
+   * side-effects when the parent entity has a stale in-memory items array.
+   */
+  private async recalculateTotals(order: WorkOrder): Promise<void> {
     const items = await this.itemRepo.find({
       where: { work_order_id: order.id },
     });
     const subtotal = items.reduce((s, i) => s + i.subtotal, 0);
-    const total =
-      subtotal * (1 + order.tax_percent / 100) - order.discount_amount;
-    order.subtotal = subtotal;
-    order.total = Math.max(0, total);
-    return this.workOrderRepo.save(order);
+    const total = Math.max(
+      0,
+      subtotal * (1 + order.tax_percent / 100) - order.discount_amount,
+    );
+    // update() only touches the specified columns — never cascades to relations
+    await this.workOrderRepo.update(order.id, { subtotal, total });
   }
 
   // ─── CRUD ────────────────────────────────────────────────
@@ -249,17 +254,29 @@ export class WorkOrdersService {
     id: string,
     itemsData: any[],
   ): Promise<WorkOrder> {
-    const order = await this.findOne(tenantId, id);
+    // Load WITHOUT items relation — avoids TypeORM cascade issues when saving totals
+    const order = await this.workOrderRepo.findOne({
+      where: { id, tenant_id: tenantId },
+    });
+    if (!order) throw new NotFoundException('Orden de trabajo no encontrada');
 
-    // Replace all existing items
-    await this.itemRepo.delete({ work_order_id: id });
+    try {
+      // Replace all existing items
+      await this.itemRepo.delete({ work_order_id: id });
 
-    if (Array.isArray(itemsData) && itemsData.length > 0) {
-      const items = itemsData.map((i) => this.buildItem(id, i));
-      await this.itemRepo.save(items);
+      if (Array.isArray(itemsData) && itemsData.length > 0) {
+        const items = itemsData.map((i) => this.buildItem(id, i));
+        await this.itemRepo.save(items);
+      }
+
+      await this.recalculateTotals(order);
+    } catch (e) {
+      if (e instanceof NotFoundException || e instanceof BadRequestException) throw e;
+      throw new BadRequestException(
+        `Error al actualizar los ítems de la orden: ${e.message}`,
+      );
     }
 
-    await this.recalculateTotals(order);
     return this.findOne(tenantId, id);
   }
 
