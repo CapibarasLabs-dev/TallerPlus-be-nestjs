@@ -21,16 +21,14 @@ export class SubscriptionGuard implements CanActivate {
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest();
-    const userId = request.user.sub; // Viene del JwtAuthGuard
+    const userId = request.user.sub;
 
     const sub = await this.subRepo.findOne({ where: { user_id: userId } });
 
     if (!sub) throw new ForbiddenException('No posees una suscripción activa.');
 
-    // 1. Si es un usuario especial (familia/amigos), pasa siempre
     if (sub.tier === UserTier.SPECIAL) return true;
 
-    // 2. Si es Premium o Trial, verificamos la fecha de vencimiento
     const isAccessStatus = [
       SubscriptionStatus.ACTIVE,
       SubscriptionStatus.TRIAL,

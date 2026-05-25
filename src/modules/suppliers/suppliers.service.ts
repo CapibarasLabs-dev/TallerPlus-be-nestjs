@@ -18,7 +18,7 @@ export class SuppliersService {
   async findAll(tenantId: string) {
     return await this.repo.find({
       where: { tenant_id: tenantId },
-      relations: ['materials'], // Optional: to see what they provide
+      relations: ['materials'],
     });
   }
 

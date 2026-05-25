@@ -12,12 +12,10 @@ export class FixedCostsService {
     private readonly repo: Repository<FixedCost>,
   ) {}
 
-  // List all costs for the active business
   async findAll(companyId: string) {
     return await this.repo.findOne({ where: { tenant_id: companyId } });
   }
 
-  // Create a new fixed cost
   async create(companyId: string, data: Partial<FixedCost>) {
     try {
       const newCost = this.repo.create({ ...data, tenant_id: companyId });
@@ -27,7 +25,6 @@ export class FixedCostsService {
     }
   }
 
-  // Calculate total monthly fixed costs (The engine for the calculator)
   async getTotalMonthly(companyId: string): Promise<number> {
     const costs = await this.findAll(companyId);
 

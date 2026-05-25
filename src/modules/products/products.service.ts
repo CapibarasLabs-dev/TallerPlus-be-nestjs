@@ -27,7 +27,6 @@ export class ProductsService {
     await queryRunner.startTransaction();
 
     try {
-      // 1. Create the Product head
       const newProduct = this.productRepo.create({
         title: data.title,
         labor_hours: data.labor_hours,
@@ -63,7 +62,6 @@ export class ProductsService {
     return await this.productRepo.find({ where: { tenant_id } });
   }
 
-  // Find one by ID ensuring it belongs to the tenant
   async findOne(tenantId: string, id: string): Promise<Product> {
     const material = await this.productRepo.findOne({
       where: { id, tenant_id: tenantId },
@@ -79,15 +77,12 @@ export class ProductsService {
       relations: ['materials', 'materials.material'],
     });
 
-    // Get global settings from Company
     const company = await this.companiesService.findOne(tenantId);
 
-    // 1. Sum materials
     const materialCost = product.materials.reduce((acc, pm) => {
       return acc + pm.material.unit_cost * pm.quantity_used;
     }, 0);
 
-    // 2. Sum labor (based on Company config)
     //TODO - A MEJORAR LA LOGICA DE NEGOCIO, FABIANA TRABAJARÁ EN REALIZAR DICHA PARTE.
     const totalFixed = await this.fixedCostsService.getTotalMonthly(tenantId);
     const costPerHour = totalFixed / (company.monthly_working_hours || 160);

@@ -53,7 +53,6 @@ export class VehiclesController {
     return this.vehiclesService.findAll(req.tenantId);
   }
 
-  // GET by UUID — must be declared before :plate to avoid routing ambiguity
   @Get('id/:id')
   findById(@Request() req: any, @Param('id') id: string) {
     return this.vehiclesService.findById(req.tenantId, id);
@@ -64,7 +63,6 @@ export class VehiclesController {
     return this.vehiclesService.findByPlate(req.tenantId, plate);
   }
 
-  // PATCH :id/photos must come BEFORE :id to avoid conflict
   @Patch(':id/photos')
   @UseInterceptors(FilesInterceptor('files'))
   async addPhotos(

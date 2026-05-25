@@ -52,9 +52,8 @@ export class UserCompaniesController {
   }
 
   @Get('my-organizations')
-  @UseGuards(JwtAuthGuard) // Assuming you have a standard JWT Guard
+  @UseGuards(JwtAuthGuard)
   async getMyOrganizations(@Request() req) {
-    // req.user.sub is the ID from the JWT payload
     return this.userCompaniesService.getMyCompanies(req.user.sub);
   }
 }

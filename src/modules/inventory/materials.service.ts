@@ -10,18 +10,15 @@ export class MaterialsService {
     private readonly repo: Repository<Material>,
   ) {}
 
-  // List materials for the active tenant
   async findAll(tenantId: string): Promise<Material[]> {
     return await this.repo.find({ where: { tenant_id: tenantId } });
   }
 
-  // Create a new material
   async create(tenantId: string, data: Partial<Material>): Promise<Material> {
     const material = this.repo.create({ ...data, tenant_id: tenantId });
     return await this.repo.save(material);
   }
 
-  // Find one by ID ensuring it belongs to the tenant
   async findOne(tenantId: string, id: string): Promise<Material> {
     const material = await this.repo.findOne({
       where: { id, tenant_id: tenantId },

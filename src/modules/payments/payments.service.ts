@@ -16,7 +16,6 @@ export class PaymentsService {
     private readonly subRepo: Repository<Subscription>,
   ) {}
 
-  // 1. Activa o renueva una suscripción (Usado por el Webhook)
   async activatePremium(
     userId: string,
     amount: number,
@@ -25,10 +24,9 @@ export class PaymentsService {
     let sub = await this.subRepo.findOne({ where: { user_id: userId } });
 
     const expirationDate = new Date();
-    expirationDate.setDate(expirationDate.getDate() + 30); // Sumamos 30 días
+    expirationDate.setDate(expirationDate.getDate() + 30);
 
     if (!sub) {
-      // Si no existe, la creamos de cero
       sub = this.subRepo.create({
         user_id: userId,
         tier: tier as UserTier,
@@ -38,7 +36,6 @@ export class PaymentsService {
         valid_until: expirationDate,
       });
     } else {
-      // Si ya existía, actualizamos datos y extendemos fecha
       sub.status = SubscriptionStatus.ACTIVE;
       sub.tier = tier as UserTier;
       sub.last_amount = amount;
@@ -49,17 +46,14 @@ export class PaymentsService {
     return await this.subRepo.save(sub);
   }
 
-  // 2. Obtener el estado actual del usuario (Para el Dashboard)
   async getSubscriptionByUser(userId: string) {
     const sub = await this.subRepo.findOne({ where: { user_id: userId } });
     if (!sub) {
-      // Si no tiene nada, devolvemos un objeto "Free" por defecto
       return { tier: UserTier.FREE, status: 'none', valid_until: null };
     }
     return sub;
   }
 
-  // 3. Crear un periodo de prueba (Trial) - Útil para el registro de nuevos usuarios
   async createTrial(userId: string, days: number = 15) {
     const expirationDate = new Date();
     expirationDate.setDate(expirationDate.getDate() + days);
@@ -74,7 +68,6 @@ export class PaymentsService {
     return await this.subRepo.save(sub);
   }
 
-  // 4. Usuario Especial (Acceso total regalado / Familiar)
   async setSpecialUser(userId: string) {
     let sub = await this.subRepo.findOne({ where: { user_id: userId } });
 
@@ -82,7 +75,7 @@ export class PaymentsService {
       user_id: userId,
       tier: UserTier.SPECIAL,
       status: SubscriptionStatus.ACTIVE,
-      valid_until: new Date('2099-12-31'), // Una fecha muy lejana
+      valid_until: new Date('2099-12-31'),
     };
 
     if (!sub) {
@@ -101,7 +94,7 @@ export class PaymentsService {
     throw new Error('Method not implemented.');
   }
   private client = new MercadoPagoConfig({
-    accessToken: process.env.MP_ACCESS_TOKEN, // Tu token de Mercado Pago Uruguay
+    accessToken: process.env.MP_ACCESS_TOKEN,
   });
 
   async createSubscriptionLink(user: any) {
@@ -122,11 +115,11 @@ export class PaymentsService {
           success: 'https://tu-app.com/dashboard?payment=success',
           failure: 'https://tu-app.com/dashboard?payment=failure',
         },
-        notification_url: 'https://tu-api.com/payments/webhook', // AQUÍ LLEGAN LOS WEBHOOKS
+        notification_url: 'https://tu-api.com/payments/webhook',
         external_reference: user.id,
       },
     });
 
-    return result.init_point; // El link que le das al usuario en Next.js
+    return result.init_point;
   }
 }

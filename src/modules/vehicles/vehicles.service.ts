@@ -104,13 +104,15 @@ export class VehiclesService {
     return vehicle;
   }
 
-  async update(tenantId: string, id: string, data: Partial<Vehicle>): Promise<Vehicle> {
+  async update(
+    tenantId: string,
+    id: string,
+    data: Partial<Vehicle>,
+  ): Promise<Vehicle> {
     const vehicle = await this.findById(tenantId, id);
-    // Normalize plate if provided
     if (data.plate) {
       data.plate = (data.plate as string).trim().toUpperCase();
     }
-    // Prevent overwriting protected fields via this endpoint
     delete (data as any).tenant_id;
     delete (data as any).photos;
     delete (data as any).documents;

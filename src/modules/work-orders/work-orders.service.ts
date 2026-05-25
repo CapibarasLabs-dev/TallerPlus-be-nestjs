@@ -6,11 +6,13 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { WorkOrder, WorkOrderStatus } from './entities/work-order.entity';
-import { WorkOrderItem, WorkOrderItemType } from './entities/work-order-item.entity';
+import {
+  WorkOrderItem,
+  WorkOrderItemType,
+} from './entities/work-order-item.entity';
 import { CustomersService } from '../customers/customers.service';
 import { VehiclesService } from '../vehicles/vehicles.service';
 
-/** Valid status transitions — terminal states have empty arrays */
 const VALID_TRANSITIONS: Record<WorkOrderStatus, WorkOrderStatus[]> = {
   [WorkOrderStatus.PENDING]: [
     WorkOrderStatus.IN_PROGRESS,
@@ -41,9 +43,6 @@ export class WorkOrdersService {
     private readonly vehiclesService: VehiclesService,
   ) {}
 
-  // ─── Helpers ────────────────────────────────────────────
-
-  /** Generate the next sequential OT-XXXX number for the given tenant */
   private async generateOrderNumber(tenantId: string): Promise<string> {
     const count = await this.workOrderRepo.count({
       where: { tenant_id: tenantId },
@@ -52,7 +51,6 @@ export class WorkOrdersService {
     return `OT-${num}`;
   }
 
-  /** Build a WorkOrderItem and compute its subtotal */
   private buildItem(workOrderId: string, data: any): WorkOrderItem {
     const quantity = Number(data.quantity ?? 1);
     const unitPrice = Number(data.unit_price ?? 0);
@@ -72,11 +70,6 @@ export class WorkOrdersService {
     });
   }
 
-  /**
-   * Recalculate and persist subtotal + total on a WorkOrder.
-   * Uses Repository.update() instead of save() to avoid TypeORM cascade
-   * side-effects when the parent entity has a stale in-memory items array.
-   */
   private async recalculateTotals(order: WorkOrder): Promise<void> {
     const items = await this.itemRepo.find({
       where: { work_order_id: order.id },
@@ -86,17 +79,13 @@ export class WorkOrdersService {
       0,
       subtotal * (1 + order.tax_percent / 100) - order.discount_amount,
     );
-    // update() only touches the specified columns — never cascades to relations
     await this.workOrderRepo.update(order.id, { subtotal, total });
   }
-
-  // ─── CRUD ────────────────────────────────────────────────
 
   async create(tenantId: string, data: any): Promise<WorkOrder> {
     let customerId: string = data.customer_id;
     let vehicleId: string = data.vehicle_id;
 
-    // ── Resolve / create customer ──
     if (!customerId) {
       if (!data.customer) {
         throw new BadRequestException(
@@ -110,7 +99,6 @@ export class WorkOrdersService {
       customerId = newCustomer.id;
     }
 
-    // ── Resolve / create vehicle ──
     if (!vehicleId) {
       if (!data.vehicle) {
         throw new BadRequestException(
@@ -122,7 +110,6 @@ export class WorkOrdersService {
           'El objeto vehicle debe incluir la placa (plate)',
         );
       }
-      // Try to find existing vehicle by plate first
       try {
         const existing = await this.vehiclesService.findByPlate(
           tenantId,
@@ -130,7 +117,6 @@ export class WorkOrdersService {
         );
         vehicleId = existing.id;
       } catch {
-        // Not found — create a new vehicle linked to the resolved customer
         const newVehicle = await this.vehiclesService.create(
           tenantId,
           { ...data.vehicle, client_id: customerId },
@@ -163,7 +149,6 @@ export class WorkOrdersService {
 
     const savedOrder = await this.workOrderRepo.save(workOrder);
 
-    // Create line items if provided
     if (Array.isArray(data.items) && data.items.length > 0) {
       const items = data.items.map((i: any) =>
         this.buildItem(savedOrder.id, i),
@@ -207,7 +192,6 @@ export class WorkOrdersService {
   async update(tenantId: string, id: string, data: any): Promise<WorkOrder> {
     const order = await this.findOne(tenantId, id);
 
-    // These fields must not be mutated via generic update
     const PROTECTED = [
       'tenant_id',
       'vehicle_id',
@@ -254,14 +238,12 @@ export class WorkOrdersService {
     id: string,
     itemsData: any[],
   ): Promise<WorkOrder> {
-    // Load WITHOUT items relation — avoids TypeORM cascade issues when saving totals
     const order = await this.workOrderRepo.findOne({
       where: { id, tenant_id: tenantId },
     });
     if (!order) throw new NotFoundException('Orden de trabajo no encontrada');
 
     try {
-      // Replace all existing items
       await this.itemRepo.delete({ work_order_id: id });
 
       if (Array.isArray(itemsData) && itemsData.length > 0) {
@@ -271,7 +253,8 @@ export class WorkOrdersService {
 
       await this.recalculateTotals(order);
     } catch (e) {
-      if (e instanceof NotFoundException || e instanceof BadRequestException) throw e;
+      if (e instanceof NotFoundException || e instanceof BadRequestException)
+        throw e;
       throw new BadRequestException(
         `Error al actualizar los ítems de la orden: ${e.message}`,
       );
