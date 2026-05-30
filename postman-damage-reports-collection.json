@@ -1,0 +1,291 @@
+{
+    "info": {
+        "_postman_id": "damage-reports-collection",
+        "name": "Damage Reports API",
+        "description": "Colección de pruebas para el servicio de reportes de daños (damage-reports)",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "item": [
+        {
+            "name": "1. Crear Reporte de Daño",
+            "event": [
+                {
+                    "listen": "test",
+                    "script": {
+                        "exec": [
+                            "if (pm.response.code === 201 || pm.response.code === 200) {",
+                            "    var jsonData = pm.response.json();",
+                            "    pm.environment.set('reportId', jsonData.id);",
+                            "    console.log('Report ID guardado:', jsonData.id);",
+                            "}"
+                        ]
+                    }
+                }
+            ],
+            "request": {
+                "method": "POST",
+                "header": [
+                    {
+                        "key": "Content-Type",
+                        "value": "application/x-www-form-urlencoded"
+                    },
+                    {
+                        "key": "Authorization",
+                        "value": "Bearer {{token}}"
+                    }
+                ],
+                "body": {
+                    "mode": "formdata",
+                    "formdata": [
+                        {
+                            "key": "vehicle_id",
+                            "value": "{{vehicleId}}",
+                            "type": "text"
+                        },
+                        {
+                            "key": "description",
+                            "value": "Daño frontal por colisión leve",
+                            "type": "text"
+                        },
+                        {
+                            "key": "damage_location",
+                            "value": "Bumper frontal y faro izquierdo",
+                            "type": "text"
+                        },
+                        {
+                            "key": "severity",
+                            "value": "moderate",
+                            "type": "text",
+                            "description": "Opciones: minor, moderate, severe, total_loss"
+                        },
+                        {
+                            "key": "damage_details",
+                            "value": "Grieta en el bumper delantero, faro izquierdo roto, pintura raspada en el capó",
+                            "type": "text"
+                        },
+                        {
+                            "key": "status",
+                            "value": "pending",
+                            "type": "text",
+                            "description": "Opciones: pending, in_review, approved, rejected, completed"
+                        },
+                        {
+                            "key": "estimated_cost",
+                            "value": "1500.50",
+                            "type": "text"
+                        },
+                        {
+                            "key": "reported_by",
+                            "value": "Juan Pérez",
+                            "type": "text"
+                        },
+                        {
+                            "key": "photos",
+                            "type": "file",
+                            "src": []
+                        }
+                    ]
+                },
+                "url": {
+                    "raw": "{{baseUrl}}/damage-reports",
+                    "host": [
+                        "{{baseUrl}}"
+                    ],
+                    "path": [
+                        "damage-reports"
+                    ]
+                },
+                "description": "Crear un nuevo reporte de daños con fotos iniciales. Las fotos se suben automáticamente a GCP."
+            },
+            "response": []
+        },
+        {
+            "name": "2. Listar Todos los Reportes",
+            "request": {
+                "method": "GET",
+                "header": [
+                    {
+                        "key": "Authorization",
+                        "value": "Bearer {{token}}"
+                    }
+                ],
+                "url": {
+                    "raw": "{{baseUrl}}/damage-reports",
+                    "host": [
+                        "{{baseUrl}}"
+                    ],
+                    "path": [
+                        "damage-reports"
+                    ]
+                },
+                "description": "Obtener todos los reportes de daños del tenant actual. Incluye relación con el vehículo y ordenados por fecha de creación descendente."
+            },
+            "response": []
+        },
+        {
+            "name": "3. Obtener Reportes por Vehículo",
+            "request": {
+                "method": "GET",
+                "header": [
+                    {
+                        "key": "Authorization",
+                        "value": "Bearer {{token}}"
+                    }
+                ],
+                "url": {
+                    "raw": "{{baseUrl}}/damage-reports/vehicle/{{vehicleId}}",
+                    "host": [
+                        "{{baseUrl}}"
+                    ],
+                    "path": [
+                        "damage-reports",
+                        "vehicle",
+                        "{{vehicleId}}"
+                    ]
+                },
+                "description": "Obtener todos los reportes de daños para un vehículo específico. Ordenados por fecha de reporte descendente."
+            },
+            "response": []
+        },
+        {
+            "name": "4. Obtener Reporte por ID",
+            "request": {
+                "method": "GET",
+                "header": [
+                    {
+                        "key": "Authorization",
+                        "value": "Bearer {{token}}"
+                    }
+                ],
+                "url": {
+                    "raw": "{{baseUrl}}/damage-reports/{{reportId}}",
+                    "host": [
+                        "{{baseUrl}}"
+                    ],
+                    "path": [
+                        "damage-reports",
+                        "{{reportId}}"
+                    ]
+                },
+                "description": "Obtener un reporte específico por su ID. Incluye relación con el vehículo."
+            },
+            "response": []
+        },
+        {
+            "name": "5. Actualizar Reporte",
+            "request": {
+                "method": "PATCH",
+                "header": [
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                    },
+                    {
+                        "key": "Authorization",
+                        "value": "Bearer {{token}}"
+                    }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n  \"status\": \"in_review\",\n  \"estimated_cost\": 2000.75,\n  \"damage_details\": \"Daño actualizado después de revisión técnica. Se requiere cambio de bumper y faro.\",\n  \"severity\": \"moderate\"\n}"
+                },
+                "url": {
+                    "raw": "{{baseUrl}}/damage-reports/{{reportId}}",
+                    "host": [
+                        "{{baseUrl}}"
+                    ],
+                    "path": [
+                        "damage-reports",
+                        "{{reportId}}"
+                    ]
+                },
+                "description": "Actualizar información de un reporte de daños. Soporta actualización de status, costo estimado, detalles, etc."
+            },
+            "response": []
+        },
+        {
+            "name": "6. Agregar Fotos Adicionales",
+            "request": {
+                "method": "PATCH",
+                "header": [
+                    {
+                        "key": "Authorization",
+                        "value": "Bearer {{token}}"
+                    }
+                ],
+                "body": {
+                    "mode": "formdata",
+                    "formdata": [
+                        {
+                            "key": "photos",
+                            "type": "file",
+                            "src": []
+                        }
+                    ]
+                },
+                "url": {
+                    "raw": "{{baseUrl}}/damage-reports/{{reportId}}/photos",
+                    "host": [
+                        "{{baseUrl}}"
+                    ],
+                    "path": [
+                        "damage-reports",
+                        "{{reportId}}",
+                        "photos"
+                    ]
+                },
+                "description": "Agregar fotos adicionales a un reporte existente. Funciona igual que la función addPhotos del servicio de vehículos. Las fotos se suben automáticamente a GCP y se agregan al array existente."
+            },
+            "response": []
+        },
+        {
+            "name": "7. Eliminar Reporte",
+            "request": {
+                "method": "DELETE",
+                "header": [
+                    {
+                        "key": "Authorization",
+                        "value": "Bearer {{token}}"
+                    }
+                ],
+                "url": {
+                    "raw": "{{baseUrl}}/damage-reports/{{reportId}}",
+                    "host": [
+                        "{{baseUrl}}"
+                    ],
+                    "path": [
+                        "damage-reports",
+                        "{{reportId}}"
+                    ]
+                },
+                "description": "Eliminar un reporte de daños. Esta acción es irreversible."
+            },
+            "response": []
+        }
+    ],
+    "variable": [
+        {
+            "key": "baseUrl",
+            "value": "http://localhost:3000",
+            "type": "string"
+        },
+        {
+            "key": "token",
+            "value": "",
+            "type": "string",
+            "description": "Token JWT del usuario autenticado"
+        },
+        {
+            "key": "vehicleId",
+            "value": "",
+            "type": "string",
+            "description": "ID del vehículo para asociar al reporte"
+        },
+        {
+            "key": "reportId",
+            "value": "",
+            "type": "string",
+            "description": "ID del reporte generado automáticamente después de crear uno"
+        }
+    ]
+}

@@ -6,13 +6,13 @@ import { Material } from './materials.entity';
 @Entity('product_materials')
 export class ProductMaterial extends BaseEntity {
   @Column()
-  product_id: string;
+  product_id!: string;
 
   @Column()
-  material_id: string;
+  material_id!: string;
 
   @Column({ type: 'float' })
-  quantity_used: number; // Ej: 0.5 si usa medio kilo
+  quantity_used!: number; // Ej: 0.5 si usa medio kilo
 
   @ManyToOne(() => Product, (p) => p.materials, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'product_id' })
