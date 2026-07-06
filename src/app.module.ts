@@ -1,52 +1,54 @@
-import { Module } from '@nestjs/common';
-import { ConfigModule, ConfigService } from '@nestjs/config';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
-import { UsersModule } from './modules/users/users.modules';
-import { CompaniesModule } from './modules/companies/companies.modules';
-import { UserCompaniesModule } from './modules/companies/user-company.modules';
-import { AuthModule } from './modules/auth/auth.module';
-import { FixedCostModule } from './modules/finance/fixed-costs.module';
-import { MaterialsModule } from './modules/inventory/materials.module';
-import { SuppliersModule } from './modules/suppliers/suppliers.controller';
-import { ProductsModule } from './modules/products/products.module';
-import { PaymentsModule } from './modules/payments/payments.module';
-import { CustomersModule } from './modules/customers/customers.module';
-import { VehiclesModule } from './modules/vehicles/vehicles.module';
-import { DamageReportsModule } from './modules/damage-reports/damage-reports.module';
+import { Module } from "@nestjs/common";
+import { ConfigModule, ConfigService } from "@nestjs/config";
+import { TypeOrmModule } from "@nestjs/typeorm";
+import { AppController } from "./app.controller";
+import { AppService } from "./app.service";
+import { UsersModule } from "./modules/users/users.modules";
+import { CompaniesModule } from "./modules/companies/companies.modules";
+import { UserCompaniesModule } from "./modules/companies/user-company.modules";
+import { AuthModule } from "./modules/auth/auth.module";
+import { FixedCostModule } from "./modules/finance/fixed-costs.module";
+import { MaterialsModule } from "./modules/inventory/materials.module";
+import { SuppliersModule } from "./modules/suppliers/suppliers.controller";
+import { ProductsModule } from "./modules/products/products.module";
+import { PaymentsModule } from "./modules/payments/payments.module";
+import { CustomersModule } from "./modules/customers/customers.module";
+import { VehiclesModule } from "./modules/vehicles/vehicles.module";
+import { DamageReportsModule } from "./modules/damage-reports/damage-reports.module";
+import { WorkOrdersModule } from "./modules/work-orders/work-orders.module";
 
 @Module({
-  imports: [
-    ConfigModule.forRoot({ isGlobal: true }),
-    TypeOrmModule.forRootAsync({
-      inject: [ConfigService],
-      useFactory: (configService: ConfigService) => ({
-        type: 'postgres',
-        url: configService.get<string>('DB_HOST'),
-        autoLoadEntities: true,
-        synchronize: true,
-        logging: true,
-        ssl: {
-          rejectUnauthorized: false,
-        },
-      }),
-    }),
-    UsersModule,
-    CompaniesModule,
-    UserCompaniesModule,
-    AuthModule,
-    FixedCostModule,
-    MaterialsModule,
-    SuppliersModule,
-    ProductsModule,
-    PaymentsModule,
-    CustomersModule,
-    VehiclesModule,
-    DamageReportsModule,
-  ],
+	imports: [
+		ConfigModule.forRoot({ isGlobal: true }),
+		TypeOrmModule.forRootAsync({
+			inject: [ConfigService],
+			useFactory: (configService: ConfigService) => ({
+				type: "postgres",
+				url: configService.get<string>("DB_HOST"),
+				autoLoadEntities: true,
+				synchronize: true,
+				logging: true,
+				ssl: {
+					rejectUnauthorized: false,
+				},
+			}),
+		}),
+		UsersModule,
+		CompaniesModule,
+		UserCompaniesModule,
+		AuthModule,
+		FixedCostModule,
+		MaterialsModule,
+		SuppliersModule,
+		ProductsModule,
+		PaymentsModule,
+		CustomersModule,
+		VehiclesModule,
+		DamageReportsModule,
+		WorkOrdersModule,
+	],
 
-  controllers: [AppController],
-  providers: [AppService],
+	controllers: [AppController],
+	providers: [AppService],
 })
 export class AppModule {}

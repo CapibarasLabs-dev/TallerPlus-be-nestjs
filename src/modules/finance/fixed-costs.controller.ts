@@ -14,7 +14,7 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { TenantGuard } from '../../common/tenant.guard';
 
 @Controller('fixed-costs')
-@UseGuards(JwtAuthGuard, TenantGuard) // Protected area
+@UseGuards(JwtAuthGuard, TenantGuard)
 export class FixedCostsController {
   constructor(private readonly fixedCostsService: FixedCostsService) {}
 

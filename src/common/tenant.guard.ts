@@ -13,9 +13,8 @@ export class TenantGuard implements CanActivate {
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest();
-    const user = request.user; // Set by JwtStrategy
+    const user = request.user;
 
-    // We expect the frontend to send the active business ID in this header
     const companyId = request.headers['x-company-id'];
 
     if (!companyId) {
@@ -24,7 +23,6 @@ export class TenantGuard implements CanActivate {
       );
     }
 
-    // Check database for the link between this User and this Company
     const membership = await this.userCompaniesService.findSpecific(
       user.sub,
       companyId,
@@ -36,7 +34,6 @@ export class TenantGuard implements CanActivate {
       );
     }
 
-    // Attach membership info to the request for use in controllers/services
     request.tenantId = companyId;
     request.userRole = membership.role;
 

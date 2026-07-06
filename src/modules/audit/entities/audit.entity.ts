@@ -9,10 +9,10 @@ export class Audit extends BaseEntity {
   tenant_id: string;
 
   @Column()
-  code: string; // Ej: 'PAYMENT_REMINDER'
+  code: string;
 
   @Column()
-  event: string; // Suceso
+  event: string;
 
   @Column({ nullable: true })
   user_id: string;
