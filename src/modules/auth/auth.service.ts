@@ -27,13 +27,11 @@ export class AuthService {
     await queryRunner.startTransaction();
 
     try {
-      // 1. Create the Company
       const company = await this.companiesService.create({
         name: registerDto.companyName,
         location: registerDto.location,
       });
 
-      // 2. Create the User (Owner)
       const user = await this.usersService.create({
         first_name: registerDto.first_name,
         last_name: registerDto.last_name,
@@ -42,7 +40,6 @@ export class AuthService {
         password: registerDto.password,
       });
 
-      // 3. Link them in UserCompany table
       await this.userCompaniesService.create({
         user_id: user.id,
         company_id: company.id,

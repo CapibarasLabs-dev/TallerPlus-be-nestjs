@@ -14,6 +14,7 @@ import { ProductsModule } from './modules/products/products.module';
 import { PaymentsModule } from './modules/payments/payments.module';
 import { CustomersModule } from './modules/customers/customers.module';
 import { VehiclesModule } from './modules/vehicles/vehicles.module';
+import { WorkOrdersModule } from './modules/work-orders/work-orders.module';
 
 @Module({
   imports: [
@@ -42,6 +43,7 @@ import { VehiclesModule } from './modules/vehicles/vehicles.module';
     PaymentsModule,
     CustomersModule,
     VehiclesModule,
+    WorkOrdersModule,
   ],
 
   controllers: [AppController],

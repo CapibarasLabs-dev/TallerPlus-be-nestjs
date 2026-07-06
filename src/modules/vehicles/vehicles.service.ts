@@ -59,6 +59,7 @@ export class VehiclesService {
   async findByPlate(tenantId: string, plate: string) {
     const vehicle = await this.repo.findOne({
       where: { tenant_id: tenantId, plate: plate.toUpperCase() },
+      relations: ['customer'],
     });
     if (!vehicle) throw new NotFoundException('Vehicle not found');
     return vehicle;
@@ -91,6 +92,31 @@ export class VehiclesService {
 
     console.info('uploadedURLs', uploadedUrls);
     vehicle.photos = [...vehicle.photos, ...uploadedUrls];
+    return await this.repo.save(vehicle);
+  }
+
+  async findById(tenantId: string, id: string): Promise<Vehicle> {
+    const vehicle = await this.repo.findOne({
+      where: { id, tenant_id: tenantId },
+      relations: ['customer'],
+    });
+    if (!vehicle) throw new NotFoundException('Vehículo no encontrado');
+    return vehicle;
+  }
+
+  async update(
+    tenantId: string,
+    id: string,
+    data: Partial<Vehicle>,
+  ): Promise<Vehicle> {
+    const vehicle = await this.findById(tenantId, id);
+    if (data.plate) {
+      data.plate = (data.plate as string).trim().toUpperCase();
+    }
+    delete (data as any).tenant_id;
+    delete (data as any).photos;
+    delete (data as any).documents;
+    Object.assign(vehicle, data);
     return await this.repo.save(vehicle);
   }
 
