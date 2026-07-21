@@ -164,3 +164,8 @@ When the user requests to close the session (e.g., *"Close the session"*, *"Term
 ### Step 4: Staging & Committing Changes
 - Stage the validated changes.
 - Create a clear, conventional commit message summarizing the work completed during the session (e.g., `feat(damage-reports): add insurance company bareme entities and service calculations`).
+
+### Step 5: Push to Remote
+- Push the feature branch to the remote (`git push -u origin HEAD`).
+- Do **NOT** push directly to `main` or `master`.
+- Confirm the remote tracking branch is up to date before finalizing the session.
