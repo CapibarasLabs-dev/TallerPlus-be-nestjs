@@ -1,18 +1,21 @@
 import {
-  Controller,
-  Get,
-  Post,
   Body,
-  Param,
-  UseGuards,
-  Request,
-  Patch,
+  Controller,
   Delete,
-  UseInterceptors,
-  UploadedFiles,
+  Get,
+  Param,
+  Patch,
+  Post,
+  Request,
+  UseGuards,
 } from '@nestjs/common';
 import { DamageReportsService } from './damage-reports.service';
-import { FilesInterceptor } from '@nestjs/platform-express';
+import {
+  AddDamageReportItemsDto,
+  CreateDamageReportDto,
+  UpdateDamageReportDto,
+  UpdateDamageReportStatusDto,
+} from './dto/damage-report.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { TenantGuard } from '../../common/tenant.guard';
 
@@ -22,13 +25,17 @@ export class DamageReportsController {
   constructor(private readonly damageReportsService: DamageReportsService) {}
 
   @Post()
-  @UseInterceptors(FilesInterceptor('photos', 10))
-  create(
+  create(@Request() req: any, @Body() body: CreateDamageReportDto) {
+    return this.damageReportsService.create(req.tenantId, body);
+  }
+
+  @Post(':id/items')
+  addItems(
     @Request() req: any,
-    @Body() data: any,
-    @UploadedFiles() photos: Express.Multer.File[] = [],
+    @Param('id') id: string,
+    @Body() body: AddDamageReportItemsDto,
   ) {
-    return this.damageReportsService.create(req.tenantId, data, photos);
+    return this.damageReportsService.addItems(req.tenantId, id, body);
   }
 
   @Get()
@@ -47,18 +54,21 @@ export class DamageReportsController {
   }
 
   @Patch(':id')
-  update(@Request() req: any, @Param('id') id: string, @Body() data: any) {
-    return this.damageReportsService.update(req.tenantId, id, data);
-  }
-
-  @Patch(':id/photos')
-  @UseInterceptors(FilesInterceptor('photos', 10))
-  addPhotos(
+  update(
     @Request() req: any,
     @Param('id') id: string,
-    @UploadedFiles() newPhotos: Express.Multer.File[] = [],
+    @Body() body: UpdateDamageReportDto,
   ) {
-    return this.damageReportsService.addPhotos(req.tenantId, id, newPhotos);
+    return this.damageReportsService.update(req.tenantId, id, body);
+  }
+
+  @Patch(':id/status')
+  updateStatus(
+    @Request() req: any,
+    @Param('id') id: string,
+    @Body() body: UpdateDamageReportStatusDto,
+  ) {
+    return this.damageReportsService.updateStatus(req.tenantId, id, body);
   }
 
   @Delete(':id')

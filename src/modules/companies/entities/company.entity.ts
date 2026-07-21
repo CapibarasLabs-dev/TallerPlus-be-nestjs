@@ -21,6 +21,9 @@ export class Company extends BaseEntity {
   @Column({ default: 'UYU' })
   currency: string;
 
+  @Column({ type: 'float', default: 22 })
+  default_tax_percent: number;
+
   @Column({ default: 0 })
   monthly_working_hours: number;
 

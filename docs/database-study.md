@@ -31,7 +31,7 @@ Every entity inherits:
 
 | Pattern | Tables |
 |---------|--------|
-| `tenant_id` → `companies.id` | customers, vehicles, work_orders, products, materials, suppliers, damage_reports, fixed_costs, audit_logs, scheduler_tasks |
+| `tenant_id` → `companies.id` | customers, vehicles, work_orders, products, materials, suppliers, damage_reports, insurance_baremes, fixed_costs, audit_logs, scheduler_tasks |
 | Junction table | `user_companies` (user ↔ company) |
 | User-scoped (not tenant) | `users`, `subscriptions` |
 
@@ -93,7 +93,8 @@ Workshop / tenant root.
 | location               | string |                          |
 | phone                  | string | Optional                 |
 | rut                    | string | Tax ID (optional)        |
-| currency               | string | Default: `UYU`           |
+| currency               | string | Default: `UYU` (ISO 4217)|
+| default_tax_percent    | float  | Default: 22 (UY); AR 21, CL 19 |
 | monthly_working_hours  | number | Default: 0               |
 | metadata               | jsonb  | Extra config             |
 
@@ -254,26 +255,69 @@ Material vendors.
 
 ---
 
-### 4.6 Damage Reports
+### 4.6 Insurance & Damage Reports (Siniestros)
+
+#### `insurance_companies`
+Catálogo global de aseguradoras (BSE, Sancor, SURA, etc.).
+
+| Column    | Type    | Notes                |
+|-----------|---------|----------------------|
+| name      | string  |                      |
+| rut       | string  | Optional             |
+| is_active | boolean | Default: true        |
+
+#### `insurance_baremes`
+Precios pactados por taller (tenant) con cada aseguradora.
+
+| Column               | Type  | Notes                                      |
+|----------------------|-------|--------------------------------------------|
+| tenant_id            | UUID  | FK → companies                             |
+| insurance_company_id | UUID  | FK → insurance_companies (CASCADE)         |
+| hour_cost_chapa      | float | Costo/hora chapa (incluye desmontaje)      |
+| hour_cost_mecanica   | float | Costo/hora mecánica                        |
+| hour_cost_pintura    | float | Nullable: si null, pintura a precio fijo   |
+
+**Unique:** `(tenant_id, insurance_company_id)`
 
 #### `damage_reports`
-Vehicle damage documentation (insurance/claims).
+Presupuesto de siniestro estructurado para la aseguradora.
 
-| Column          | Type      | Notes                                      |
-|-----------------|-----------|--------------------------------------------|
-| tenant_id       | UUID      | FK → companies                             |
-| vehicle_id      | UUID      | FK → vehicles (CASCADE)                    |
-| report_number   | string    | Optional                                   |
-| description     | text      |                                            |
-| damage_location | string    | Where on the vehicle                       |
-| severity        | enum      | `minor`, `moderate`, `severe`, `total_loss`|
-| damage_details  | text      |                                            |
-| status          | enum      | `pending` → `in_review` → `approved`/`rejected` → `completed` |
-| estimated_cost  | decimal   |                                            |
-| reported_by     | string    |                                            |
-| report_date     | timestamp | Default: now                               |
-| photos          | jsonb     | Default: []                                |
-| metadata        | jsonb     |                                            |
+| Column               | Type   | Notes                                                         |
+|----------------------|--------|---------------------------------------------------------------|
+| tenant_id            | UUID   | FK → companies                                                |
+| vehicle_id           | UUID   | FK → vehicles (CASCADE)                                       |
+| insurance_company_id | UUID   | FK → insurance_companies                                      |
+| siniestro_number     | string | Número de siniestro de la aseguradora                         |
+| status               | enum   | `pending_peritaje` → `approved`/`rejected` → `in_repair` → `delivered` |
+| general_photos       | jsonb  | URLs GCP del peritaje inicial (default: [])                   |
+| observations         | text   | Optional                                                      |
+| subtotal_repuestos   | float  | Default: 0                                                    |
+| subtotal_chapa       | float  | Incluye desmontaje/montaje (default: 0)                       |
+| subtotal_mecanica    | float  | Default: 0                                                    |
+| subtotal_pintura     | float  | Default: 0                                                    |
+| subtotal             | float  | Default: 0                                                    |
+| tax_percent          | float  | Inicializado desde `Company.default_tax_percent`; editable    |
+| tax_amount           | float  | Default: 0                                                    |
+| total                | float  | Default: 0                                                    |
+
+#### `damage_report_items`
+Líneas del presupuesto (piezas / operaciones).
+
+| Column           | Type   | Notes                                                              |
+|------------------|--------|--------------------------------------------------------------------|
+| damage_report_id | UUID   | FK → damage_reports (CASCADE)                                      |
+| description      | string | Ej: PARAGOLPE DEL, ESPOLON                                         |
+| operation_type   | enum   | `repuesto`, `chapa`, `pintura`, `mecanica`, `desmontaje_montaje`   |
+| hours_suggested  | float  | Horas estimadas (default: 0)                                       |
+| unit_price       | float  | Repuesto o pintura a precio fijo (default: 0)                      |
+| supplier_name    | string | Optional (ej: BERKLEY)                                             |
+| item_photos      | jsonb  | URLs GCP del daño de la pieza (default: [])                        |
+
+**Cálculo de costo por ítem:**
+- `repuesto` → `unit_price`
+- `chapa` / `desmontaje_montaje` → `hours_suggested * hour_cost_chapa`
+- `mecanica` → `hours_suggested * hour_cost_mecanica`
+- `pintura` → `unit_price` si > 0; si no, `hours_suggested * hour_cost_pintura`
 
 ---
 
@@ -334,9 +378,13 @@ erDiagram
     companies ||--o{ materials : "tenant"
     companies ||--o{ suppliers : "tenant"
     companies ||--o{ damage_reports : "tenant"
+    companies ||--o{ insurance_baremes : "tenant"
     companies ||--o| fixed_costs : "tenant"
     companies ||--o{ audit_logs : "tenant"
     companies ||--o{ scheduler_tasks : "tenant"
+
+    insurance_companies ||--o{ insurance_baremes : "has"
+    insurance_companies ||--o{ damage_reports : "covers"
 
     customers ||--o{ vehicles : "owns"
     customers ||--o{ work_orders : "requests"
@@ -344,6 +392,7 @@ erDiagram
     vehicles ||--o{ work_orders : "serviced_in"
     vehicles ||--o{ damage_reports : "has"
 
+    damage_reports ||--o{ damage_report_items : "contains"
     work_orders ||--o{ work_order_items : "contains"
 
     products ||--o{ product_materials : "uses"
@@ -358,26 +407,29 @@ erDiagram
 
 ---
 
-## 6. Table Summary (16 tables)
+## 6. Table Summary (19 tables)
 
-| # | Table              | Purpose                          |
-|---|--------------------|----------------------------------|
-| 1 | users              | Authentication & profiles        |
-| 2 | user_companies     | User ↔ Company membership        |
-| 3 | subscriptions      | SaaS billing per user            |
-| 4 | companies          | Tenant / workshop                |
-| 5 | customers          | Workshop clients                 |
-| 6 | vehicles           | Customer vehicles                |
-| 7 | work_orders        | Repair jobs                      |
-| 8 | work_order_items   | Line items on orders             |
-| 9 | products           | Services & catalog               |
-| 10| materials          | Inventory parts                  |
-| 11| product_materials  | Product BOM                      |
-| 12| suppliers          | Vendors                          |
-| 13| damage_reports     | Vehicle damage records           |
-| 14| fixed_costs        | Monthly overhead                 |
-| 15| audit_logs         | Audit trail                      |
-| 16| scheduler_tasks    | Scheduled tasks                  |
+| # | Table                | Purpose                          |
+|---|----------------------|----------------------------------|
+| 1 | users                | Authentication & profiles        |
+| 2 | user_companies       | User ↔ Company membership        |
+| 3 | subscriptions        | SaaS billing per user            |
+| 4 | companies            | Tenant / workshop                |
+| 5 | customers            | Workshop clients                 |
+| 6 | vehicles             | Customer vehicles                |
+| 7 | work_orders          | Repair jobs                      |
+| 8 | work_order_items     | Line items on orders             |
+| 9 | products             | Services & catalog               |
+| 10| materials            | Inventory parts                  |
+| 11| product_materials    | Product BOM                      |
+| 12| suppliers            | Vendors                          |
+| 13| insurance_companies  | Insurer catalog                  |
+| 14| insurance_baremes    | Per-tenant hour rates            |
+| 15| damage_reports       | Insurance claim budgets          |
+| 16| damage_report_items  | Claim line items                 |
+| 17| fixed_costs          | Monthly overhead                 |
+| 18| audit_logs           | Audit trail                      |
+| 19| scheduler_tasks      | Scheduled tasks                  |
 
 ---
 
@@ -387,8 +439,9 @@ erDiagram
 2. **Soft links:** `work_orders.assigned_to_id` and `work_order_items.product_id` / `material_id` are UUIDs without explicit FK relations in the entities.
 3. **Product variants:** `products.parent_id` enables a parent/variant hierarchy.
 4. **Dual material model:** Products have both a `materials` jsonb field and a normalized `product_materials` junction table.
-5. **Cascades:** Deleting a work order deletes its items; deleting a vehicle deletes its damage reports.
-6. **Default locale:** Uruguay-focused defaults (`UYU`, `America/Montevideo`, `rut`, `padron`).
+5. **Cascades:** Deleting a work order deletes its items; deleting a vehicle deletes its damage reports; deleting a damage report deletes its items.
+6. **Default locale:** Uruguay-focused defaults (`UYU`, `America/Montevideo`, `rut`, `padron`, `default_tax_percent` 22). Each company can set its own `currency` and `default_tax_percent` (multi-country).
+7. **Insurance baremes:** Hour rates are per-tenant × insurer; claim line costs are derived from bareme + item hours/prices. Tax on a damage report uses that report's `tax_percent` (copied from the company on create, overridable per claim).
 
 ---
 
@@ -406,7 +459,10 @@ Workshop operations:
         → Work Order opened (status: pending)
           → Items added (service/material/other)
           → Status progresses → completed → delivered
-        → Damage Report (optional, parallel track)
+        → Damage Report / Siniestro (presupuesto aseguradora)
+          → Bareme del taller × aseguradora
+          → Ítems (repuesto/chapa/pintura/mecánica)
+          → Totales + IVA 22%
 
 Catalog setup:
   Supplier → Material → ProductMaterial → Product (service with BOM)

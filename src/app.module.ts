@@ -15,6 +15,7 @@ import { PaymentsModule } from "./modules/payments/payments.module";
 import { CustomersModule } from "./modules/customers/customers.module";
 import { VehiclesModule } from "./modules/vehicles/vehicles.module";
 import { DamageReportsModule } from "./modules/damage-reports/damage-reports.module";
+import { InsuranceModule } from "./modules/insurance/insurance.module";
 import { WorkOrdersModule } from "./modules/work-orders/work-orders.module";
 
 @Module({
@@ -44,6 +45,7 @@ import { WorkOrdersModule } from "./modules/work-orders/work-orders.module";
 		PaymentsModule,
 		CustomersModule,
 		VehiclesModule,
+		InsuranceModule,
 		DamageReportsModule,
 		WorkOrdersModule,
 	],

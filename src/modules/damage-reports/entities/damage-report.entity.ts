@@ -1,7 +1,23 @@
-import { Entity, Column, ManyToOne, JoinColumn } from 'typeorm';
+import {
+  Column,
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  OneToMany,
+} from 'typeorm';
 import { BaseEntity } from '../../../common/base.entity';
-import { Vehicle } from '../../vehicles/entities/vehicle.entity';
 import { Company } from '../../companies/entities/company.entity';
+import { Vehicle } from '../../vehicles/entities/vehicle.entity';
+import { InsuranceCompany } from '../../insurance/entities/insurance-company.entity';
+import { DamageReportItem } from './damage-report-item.entity';
+
+export enum DamageReportStatus {
+  PENDING_PERITAJE = 'pending_peritaje',
+  APPROVED = 'approved',
+  REJECTED = 'rejected',
+  IN_REPAIR = 'in_repair',
+  DELIVERED = 'delivered',
+}
 
 @Entity('damage_reports')
 export class DamageReport extends BaseEntity {
@@ -11,52 +27,64 @@ export class DamageReport extends BaseEntity {
   @Column()
   vehicle_id: string;
 
-  @Column({ nullable: true })
-  report_number: string;
+  @Column()
+  insurance_company_id: string;
 
-  @Column({ type: 'text', nullable: true })
-  description: string;
-
-  @Column({ nullable: true })
-  damage_location: string;
+  @Column()
+  siniestro_number: string;
 
   @Column({
     type: 'enum',
-    enum: ['minor', 'moderate', 'severe', 'total_loss'],
-    default: 'moderate',
+    enum: DamageReportStatus,
+    default: DamageReportStatus.PENDING_PERITAJE,
   })
-  severity: 'minor' | 'moderate' | 'severe' | 'total_loss';
-
-  @Column({ type: 'text', nullable: true })
-  damage_details: string;
-
-  @Column({
-    type: 'enum',
-    enum: ['pending', 'in_review', 'approved', 'rejected', 'completed'],
-    default: 'pending',
-  })
-  status: 'pending' | 'in_review' | 'approved' | 'rejected' | 'completed';
-
-  @Column({ type: 'decimal', precision: 10, scale: 2, nullable: true })
-  estimated_cost: number;
-
-  @Column({ nullable: true })
-  reported_by: string;
-
-  @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
-  report_date: Date;
+  status: DamageReportStatus;
 
   @Column({ type: 'jsonb', default: [] })
-  photos: string[];
+  general_photos: string[];
 
-  @Column({ type: 'jsonb', nullable: true })
-  metadata: any;
+  @Column({ type: 'text', nullable: true })
+  observations: string | null;
+
+  @Column({ type: 'float', default: 0 })
+  subtotal_repuestos: number;
+
+  @Column({ type: 'float', default: 0 })
+  subtotal_chapa: number;
+
+  @Column({ type: 'float', default: 0 })
+  subtotal_mecanica: number;
+
+  @Column({ type: 'float', default: 0 })
+  subtotal_pintura: number;
+
+  @Column({ type: 'float', default: 0 })
+  subtotal: number;
+
+  @Column({ type: 'float', default: 22 })
+  tax_percent: number;
+
+  @Column({ type: 'float', default: 0 })
+  tax_amount: number;
+
+  @Column({ type: 'float', default: 0 })
+  total: number;
+
+  @ManyToOne(() => Company)
+  @JoinColumn({ name: 'tenant_id' })
+  company: Company;
 
   @ManyToOne(() => Vehicle, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'vehicle_id' })
   vehicle: Vehicle;
 
-  @ManyToOne(() => Company)
-  @JoinColumn({ name: 'tenant_id' })
-  company: Company;
+  @ManyToOne(() => InsuranceCompany, { eager: false })
+  @JoinColumn({ name: 'insurance_company_id' })
+  insuranceCompany: InsuranceCompany;
+
+  @OneToMany(() => DamageReportItem, (item) => item.damageReport, {
+    cascade: true,
+    eager: false,
+  })
+  items: DamageReportItem[];
 }
